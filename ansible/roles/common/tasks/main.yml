@@ -15,11 +15,5 @@
 - name: Install misc
   apt: name='vim,htop,man,lsb-release'
 
-- name: Install system debug tools
-  apt: name='strace'
-
-- name: Install network tools
-  apt: name='nmap,telnet,tcpdump'
-
 - name: Install Postfix
   apt: name='postfix'

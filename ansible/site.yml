@@ -9,3 +9,10 @@
   become: yes
   roles:
     - jenkins
+
+# Configure Gitlab
+- name: Install and configure jenkins
+  hosts: gitlab
+  become: yes
+  roles:
+    - gitlab
