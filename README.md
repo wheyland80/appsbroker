@@ -95,12 +95,12 @@ There are so many missing parts to this exercise that would make it a suitable p
 * Lack of central logging (ELK)
 * Low spec of compute resources
 * Missing redundancy and backups
-* Nissing Cloud Armor and LB configuration including security policies
+* Missing Cloud Armor and LB configuration including security policies
 * No Secure VPN access
 * No High Availability cross zone configuration (Although GKE does this out of the box?)
 * No network isolation of resources, applications, and devops resources.
 * Missing configuration of the Cloud SQL replicas
-* Lack of auto-scaling of the Nginx/PHP FROM services
+* Lack of auto-scaling of the Nginx/PHP FPM services
 * Lack of auto-healing capabilities (liveness, readiness probes)
 * General production ready configuration of the various services
 
