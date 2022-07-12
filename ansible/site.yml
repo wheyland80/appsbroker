@@ -4,14 +4,14 @@
 #
 
 # Configure Jenkins
-- name: Install and configure jenkins
+- name: Install and configure Jenkins
   hosts: jenkins
   become: yes
   roles:
     - jenkins
 
 # Configure Gitlab
-- name: Install and configure jenkins
+- name: Install and configure Gitlab
   hosts: gitlab
   become: yes
   roles:
