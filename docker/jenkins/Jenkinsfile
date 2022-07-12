@@ -3,18 +3,24 @@
 
 pipeline {
     agent {
-        label 'master'
+        docker {
+            // Pin this to a specific terraform version if necessary
+            image 'google/cloud-sdk:latest'
+            args '--entrypoint="" -u root'
+        }
     }
     parameters {
         choice(
             name: 'IMAGE_NAME',
-            choices: ['php','nginx'],
+            choices: ['php-fpm','nginx'],
             description: 'The image to build.' )
-        choice(
-            name: 'TARGET_ENVIRONMENT',
-            choices: ['qa','prod''],
-            description: 'The environment to deploy to.' )
         booleanParam(name: 'DEBUG', defaultValue: true, description: '')
+    }
+    options {
+        ansiColor('xterm')
+    }
+    environment {
+        JENKINS_GCP_SVC = credentials("jenkins-gcp-service-account")
     }
     stages {
         stage('Pre-Deploy Checks') {
@@ -25,7 +31,8 @@ pipeline {
         }
         stage('Cloud Build Image') {
             steps {
-                sh "'${WORKSPACE}/scripts/cloud_build.sh' -e '${TARGET_ENVIRONMENT}' -i '${IMAGE_NAME}'"
+                sh "gcloud auth activate-service-account jenkins@appsbroker-356110.iam.gserviceaccount.com --key-file=${JENKINS_GCP_SVC}"
+                sh "'${WORKSPACE}/docker/scripts/cloud_build.sh' -i '${IMAGE_NAME}'"
             }
         }
     }

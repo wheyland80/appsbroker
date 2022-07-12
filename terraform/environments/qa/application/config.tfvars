@@ -1,2 +1,2 @@
 layer = "application"
-host                   = "https://XXXXXXXX:32768"
+host = "https://XXXXXXXX:32768"

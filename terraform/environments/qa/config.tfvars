@@ -1,3 +1,3 @@
 project_id = "appsbroker-356110"
-region = "us-central1"
+region = "europe-west2"
 env = "qa"

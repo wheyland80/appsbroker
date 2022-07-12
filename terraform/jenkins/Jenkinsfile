@@ -33,6 +33,10 @@ pipeline {
         GCP_PROJECT_ID = 'alpine-effort-334412'
         /* Fetch the terraform environment specific service account */
         GCP_SVC_ACCOUNT = credentials("terraform-${params.target_environment}-gcp-service-account")
+        DESTROY_OPTION = "${params.action == 'destroy' ? '-destroy' : ' '}"
+    }
+    options {
+        ansiColor('xterm')
     }
     stages {
         stage('Prepare Workspace') {
@@ -48,12 +52,9 @@ pipeline {
             }
         }
         stage('Terraform Plan') {
-            when {
-                environment name: 'action', value: 'apply'
-            }
             steps {
                 dir ("${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}") {
-                    sh "terraform plan -var-file='../config.tfvars' -var-file='./config.tfvars' -out myplan"
+                    sh "terraform plan ${DESTROY_OPTION} -var-file='../config.tfvars' -var-file='./config.tfvars' -out myplan"
                 }
             }
         }
@@ -81,7 +82,7 @@ pipeline {
             }
             steps {
                 dir ("${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}") {
-                    sh "terraform destroy -auto-approve"
+                    sh "terraform apply -destroy -auto-approve myplan"
                 }
             }
         }

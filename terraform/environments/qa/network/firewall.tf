@@ -11,6 +11,4 @@ resource "google_compute_firewall" "rules" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-
-  depends_on = [resource.google_project_service.compute]
 }

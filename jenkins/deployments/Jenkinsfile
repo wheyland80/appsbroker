@@ -1,5 +1,5 @@
 #!groovy
-@Library('backup_jenkins_library') _
+//@Library('jenkins_library') _
 
 pipeline {
     agent {
@@ -26,6 +26,9 @@ pipeline {
         GKE_CLIENT_CERTIFICATE     = credentials("${params.target_environment}-gke-client-certificate")
         GKE_CLIENT_KEY             = credentials("${params.target_environment}-gke-client-key")
         GKE_CLUSTER_CA_CERTIFICATE = credentials("${params.target_environment}-gke-cluster-ca-certificate")
+    }
+    options {
+        ansiColor('xterm')
     }
     stages {
         stage('Pre-Deploy Checks') {

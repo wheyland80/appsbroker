@@ -1,5 +1,5 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ["build", "--build-arg", "ENV=${_ENV}", "-t", "us.gcr.io/${PROJECT_ID}/${_ENV}-nginx:latest", "-t", "us.gcr.io/${PROJECT_ID}/${_ENV}-nginx:${_VERSION}", "."]
+  args: ["build", "-t", "eu.gcr.io/${PROJECT_ID}/nginx:latest", "-t", "eu.gcr.io/${PROJECT_ID}/nginx:${_VERSION}", "."]
 images:
-- us.gcr.io/${PROJECT_ID}/${_ENV}-nginx
+- us.gcr.io/${PROJECT_ID}/nginx

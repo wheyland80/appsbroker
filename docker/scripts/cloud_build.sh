@@ -5,7 +5,6 @@
 
 # ENVIRONMENT
 # ===========
-ENV=${ENV:-}
 IMAGE=${IMAGE:-}
 VERSION=${VERSION:-}
 
@@ -76,9 +75,7 @@ inbuilt_help="
 NAME
     build.sh - Build an image.
 
-    Build an image (-i IMAGE) with environment configuration (-e ENVIRONMENT).
-
-    Images follow the naming convention ENVIRONMENT-IMAGE.
+    Build an image (-i IMAGE)
 
 SYNOPSIS
     build.sh [-h] [-d] -e ENVIRONMENT -i IMAGE [-v VERSION ]
@@ -88,8 +85,6 @@ OPTIONS
         Display this inbuilt help
     -d
         Enable debug mode.
-    -e ENVIRONMENT
-        The target environment type (prod, qa, test, uat, ...)
     -i IMAGE
         The target image (nginx, mysql, rabbitmq, php, redis, devtools, ...)
     -v VERSION
@@ -98,7 +93,7 @@ OPTIONS
 EXAMPLES
     Build a 'nginx' image from Dockerfile under the './dockerfiles/nginx/' directory with 'dev' environment configuration
 
-        ./build.sh -i jenkins -e dev
+        ./build.sh -i jenkins
 "
 
 debug_command='echo'
@@ -211,9 +206,6 @@ do
         d)
             debug="${debug_command}";
             ;;
-        e)
-            ENV="${OPTARG}"
-            ;;
         i)
             IMAGE="${OPTARG}"
             ;;
@@ -236,7 +228,6 @@ done
 
 # INPUT VALIDATION
 # ================
-validate_environment "${ENV}"
 validate_image "${IMAGE}"
 
 # Load configuration
@@ -244,11 +235,6 @@ validate_image "${IMAGE}"
 if [ -f "${script_dir}/../config/config.sh" ]
 then
     source "${script_dir}/../config/config.sh"
-fi
-
-if [ -f "${script_dir}/../config/${ENV}/config.sh" ]
-then
-    source "${script_dir}/../config/${ENV}/config.sh"
 fi
 
 if [ -n "${VERSION}" ]
@@ -269,7 +255,7 @@ path_to_dockerfile_dir="${script_dir}/../dockerfiles/${IMAGE}"
 cd "${path_to_dockerfile_dir}"
 
 # The image name
-image_name="${ENV}-${IMAGE}"
+image_name="${IMAGE}"
 
 if [ -z "${VERSION}" ]
 then
@@ -294,7 +280,7 @@ fi
 
 # Build the image
 output_stdout "${bold}Building image '${image_name}'${normal}"
-${debug} gcloud builds submit --config="${path_to_dockerfile_dir}/cloudbuild.yaml" --substitutions="_ENV=${ENV},_VERSION=${VERSION}" "${path_to_dockerfile_dir}/" \
+${debug} gcloud builds submit --config="${path_to_dockerfile_dir}/cloudbuild.yaml" --substitutions="_VERSION=${VERSION}" "${path_to_dockerfile_dir}/" \
     || { output_stderr "Failed to build image '${image_name}'"; exit 1; }
 
 # Run the post-build script, if present

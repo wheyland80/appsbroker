@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ["build", "-t", "eu.gcr.io/${PROJECT_ID}/php-fpm:latest", "-t", "eu.gcr.io/${PROJECT_ID}/php-fpm:${_VERSION}", "."]
+images:
+- us.gcr.io/${PROJECT_ID}/php-fpm

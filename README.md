@@ -22,7 +22,15 @@ Application deployments obtain configuration directly from the GCP Secret Manage
 
 The GCP IAM service account credentials are stored in the Jenkins credentials manager and pulled in via the pipelines where necessary.
 
-### List of all secrets used and corresponding labels
+### List of all secrets used in project
+
+* ENV-cloudsql-replicator
+* ENV-cloudsql-ro
+* ENV-cloudsql-rw
+* ENV-gke-password
+* ENV-gke-client-certificate
+* ENV-gke-client-key
+* ENV-gke-cluster-ca-certificate
 
 ### Observations
 
@@ -104,3 +112,12 @@ There are so many missing parts to this exercise that would make it a suitable p
 * Lack of auto-healing capabilities (liveness, readiness probes)
 * General production ready configuration of the various services
 
+## Challenges faced during this exercise
+
+The usual suspect(s):
+
+* Error: Error waiting for instance to create: The zone 'projects/appsbroker-356110/zones/us-central1-b' does not have enough resources available to fulfill the request.  Try a different zone, or try again later.
+* Error: Error waiting for instance to create: The zone 'projects/appsbroker-356110/zones/europe-west2-a' does not have enough resources available to fulfill the request.  Try a different zone, or try again later.
+* Error: Error waiting for instance to create: The zone 'projects/appsbroker-356110/zones/europe-west2-b' does not have enough resources available to fulfill the request.  Try a different zone, or try again later.
+* Error: Error waiting for instance to create: The zone 'projects/appsbroker-356110/zones/europe-west2-c' does not have enough resources available to fulfill the request.  Try a different zone, or try again later.
+* Did I mention usage quotas?
