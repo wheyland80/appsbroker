@@ -1,0 +1,109 @@
+#!groovy
+//@Library('jenkins_library') _
+
+pipeline {
+    agent {
+        docker {
+            // Pin this to a specific terraform version if necessary
+            image 'hashicorp/terraform:latest'
+            args '--entrypoint="" -u root'
+        }
+    }
+    parameters {
+        /* Use an environment/layer approach to terraform provisioning with a separate state file for each environment and layer combination.
+           This splits the terraform state files into env/network, env/resource, and env/application layers to allow
+           for more isolation with the option to divide provisioning responsibilities between multiple teams.
+           NOTE: This pipeline does not currently enforce such a division of responsibilities but could be implemented it in the future.
+         */
+        choice(
+            name: 'target_environment',
+            choices: ['qa','prod'],
+            description: 'The environment to apply changes to.' )
+
+        choice(
+            name: 'layer',
+            choices: ['network','resource','application'],
+            description: 'The terraform layer to apply changes to.' )
+        choice(
+            name: 'action',
+            choices: ['apply','destroy'],
+            description: 'The action to apply.' )
+        }
+    environment {
+        GCP_PROJECT_ID = 'alpine-effort-334412'
+        /* Fetch the terraform environment specific service account */
+        GCP_SVC_ACCOUNT = credentials("terraform-${params.target_environment}-gcp-service-account")
+    }
+    stages {
+        stage('Prepare Workspace') {
+            steps {
+                /* The GCP_SVC_ACCOUNT variable is a temporary file path to the service account credentials.
+                   Terraform will complain of a backend configuration change if the path to this file varies between each run.
+                   To fix this, ensure that the file is located at in a fixed path using a symbolic link */
+                sh "ln -sf '${GCP_SVC_ACCOUNT}' '${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}/gcp-service-account.json'"
+
+                dir ("${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}") {
+                    sh "terraform init -backend-config=\"bucket=appsbroker-terraform\" -backend-config=\"prefix=${params.target_environment}-${params.layer}\""
+                }
+            }
+        }
+        stage('Terraform Plan') {
+            when {
+                environment name: 'action', value: 'apply'
+            }
+            steps {
+                dir ("${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}") {
+                    sh "terraform plan -var-file='../config.tfvars' -var-file='./config.tfvars' -out myplan"
+                }
+            }
+        }
+        stage('Approval') {
+            steps {
+                script {
+                    def userInput = input(id: 'confirm', message: 'Apply Terraform?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Apply terraform', name: 'confirm'] ])
+                }
+            }
+        }
+        stage('Terraform Apply') {
+            when {
+                environment name: 'action', value: 'apply'
+            }
+            steps {
+                dir ("${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}") {
+                    sh "terraform apply -input=false myplan"
+                }
+            }
+        }
+        /* For convenience only for the purpose of this exercise. A destroy world would not be present in a production system */
+        stage('Terraform Destroy') {
+            when {
+                environment name: 'action', value: 'destroy'
+            }
+            steps {
+                dir ("${WORKSPACE}/terraform/environments/${params.target_environment}/${params.layer}") {
+                    sh "terraform destroy -auto-approve"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'The END'
+
+            // Always clean workspace after build
+            cleanWs()
+        }
+        success {
+            echo 'Provisioning Successful.'
+
+            // Add a monitoring/notification hook
+            // this is where I would hook into the environment's monitoring service. E.g. Stackdriver
+        }
+        failure {
+            echo 'Provisioning Failed.'
+
+            // Add a monitoring/notification hook
+            // this is where I would hook into the environment's monitoring service. E.g. Stackdriver
+        }
+    }
+}

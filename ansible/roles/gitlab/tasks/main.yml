@@ -1,0 +1,30 @@
+---
+# tasks file for gitlab.
+- name: Create gitlab docker-compose directory
+  ansible.builtin.file:
+    path: /home/gitlab/docker-compose
+    state: directory
+- name: Create docker base volumes directory
+  ansible.builtin.file:
+    path: /home/gitlab/volumes
+    state: directory
+- name: Create docker config directory
+  ansible.builtin.file:
+    path: /home/gitlab/volumes/config
+    state: directory
+- name: Create docker logs directory
+  ansible.builtin.file:
+    path: /home/gitlab/volumes/logs
+    state: directory
+- name: Create docker logs directory
+  ansible.builtin.file:
+    path: /home/gitlab/volumes/data
+    state: directory
+- name: Copy docker-compose files
+  template:
+    src: templates/docker-compose.yml
+    dest: /home/gitlab/docker-compose/docker-compose.yml
+    mode: 0644
+- name: Debug variable output
+  debug:
+    var: gitlab_home

@@ -1,0 +1,50 @@
+---
+# tasks file for jenkins
+- name: Create jenkins docker network
+  docker_network:
+    name: jenkins
+- name: Create jenkins docker in docker (dind) container
+  docker_container:
+    name: jenkins-docker
+    image: docker:dind
+    state: started
+    recreate: yes
+    detach: yes
+    privileged:  yes
+    networks:
+      - name: jenkins
+        aliases:
+          - docker
+    env:
+      DOCKER_TLS_CERTDIR: "/certs"
+    volumes:
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+    published_ports:
+      - 2376:2376
+    # I can't find the correct option for this. Don't confuse with volume_driver
+    # storage_driver: overlay2
+- name: Build custom jenkins image
+  command: docker build -t myjenkins-blueocean:2.346.1-1 ./roles/jenkins/files/
+- name: Create Jenkins container
+  docker_container:
+    name: jenkins
+    image: myjenkins-blueocean:2.346.1-1
+    state: started
+    recreate: yes
+    detach: yes
+    privileged: yes
+    networks:
+      - name: jenkins
+        aliases:
+          - docker
+    env:
+      DOCKER_HOST: 'tcp://docker:2376'
+      DOCKER_CERT_PATH: '/certs/client'
+      DOCKER_TLS_VERIFY: '1'
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+    published_ports:
+      - 8080:8080
+      - 50000:50000

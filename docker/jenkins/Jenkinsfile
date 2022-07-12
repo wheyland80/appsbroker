@@ -1,0 +1,37 @@
+#!groovy
+//@Library('appsbroker_jenkins_library') _
+
+pipeline {
+    agent {
+        label 'master'
+    }
+    parameters {
+        choice(
+            name: 'IMAGE_NAME',
+            choices: ['php','nginx'],
+            description: 'The image to build.' )
+        choice(
+            name: 'TARGET_ENVIRONMENT',
+            choices: ['qa','prod''],
+            description: 'The environment to deploy to.' )
+        booleanParam(name: 'DEBUG', defaultValue: true, description: '')
+    }
+    stages {
+        stage('Pre-Deploy Checks') {
+            steps {
+                // For debugging purposes only
+                sh "env"
+            }
+        }
+        stage('Cloud Build Image') {
+            steps {
+                sh "'${WORKSPACE}/scripts/cloud_build.sh' -e '${TARGET_ENVIRONMENT}' -i '${IMAGE_NAME}'"
+            }
+        }
+    }
+    post {
+        always {
+            echo 'The END.'
+        }
+    }
+}

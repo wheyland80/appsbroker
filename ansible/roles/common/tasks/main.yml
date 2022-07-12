@@ -1,0 +1,25 @@
+---
+# tasks file for common role
+- name: Debug variable output
+  debug:
+    var: groups
+- name: Update Apt Cache
+  apt: update_cache=yes
+
+- name: Install sudo
+  apt: name=sudo
+
+- name: Configure sudo
+  copy: src=files/etc/sudoers.d/wheyland dest=/etc/sudoers.d/wheyland
+
+- name: Install misc
+  apt: name='vim,htop,man,lsb-release'
+
+- name: Install system debug tools
+  apt: name='strace'
+
+- name: Install network tools
+  apt: name='nmap,telnet,tcpdump'
+
+- name: Install Postfix
+  apt: name='postfix'

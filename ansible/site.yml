@@ -1,0 +1,11 @@
+---
+#
+# This is a role based playbook. Roles are pulled in based on host group or host (for host specific roles typically for hardware support).
+#
+
+# Configure Jenkins
+- name: Install and configure jenkins
+  hosts: jenkins
+  become: yes
+  roles:
+    - jenkins
