@@ -22,7 +22,7 @@ data "google_secret_manager_secret_version" "cluster_ca_certificate" {
 }
 
 provider "kubernetes" {
-  host = "https://${data.terraform_remote_state.resource.outputs.gke_endpoint}:6443"
+  host = "https://${data.terraform_remote_state.resource.outputs.gke_endpoint}"
 
   client_certificate     = base64decode(data.google_secret_manager_secret_version.client_certificate.secret_data)
   client_key             = base64decode(data.google_secret_manager_secret_version.client_key.secret_data)
