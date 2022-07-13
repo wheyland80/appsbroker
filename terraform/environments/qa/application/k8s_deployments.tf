@@ -22,18 +22,25 @@ data "google_secret_manager_secret_version" "cluster_ca_certificate" {
 }
 
 provider "kubernetes" {
-  host = data.terraform_remote_state.resource.outputs.gke_endpoint
+  host = "https://${data.terraform_remote_state.resource.outputs.gke_endpoint}:6443"
 
   client_certificate     = base64decode(data.google_secret_manager_secret_version.client_certificate.secret_data)
   client_key             = base64decode(data.google_secret_manager_secret_version.client_key.secret_data)
   cluster_ca_certificate = base64decode(data.google_secret_manager_secret_version.cluster_ca_certificate.secret_data)
 }
 
-resource "kubernetes_deployment" "nginx" {
+resource "kubernetes_namespace" "appsbroker" {
   metadata {
-    name = "nginx"
+    name = "appsbroker"
+  }
+}
+
+resource "kubernetes_deployment" "appsbroker" {
+  metadata {
+    name = "appsbroker"
+    namespace = "appsbroker"
     labels = {
-      App = "nginx"
+      App = "appsbroker"
       Env = "${var.env}"
     }
   }
@@ -42,18 +49,18 @@ resource "kubernetes_deployment" "nginx" {
     replicas = 2
     selector {
       match_labels = {
-        App = "nginx"
+        App = "appsbroker"
       }
     }
     template {
       metadata {
         labels = {
-          App = "nginx"
+          App = "appsbroker"
         }
       }
       spec {
         container {
-          image = "us.gcr.io/${var.project_id}/${var.env}-nginx:latest"
+          image = "eu.gcr.io/${var.project_id}/nginx:latest"
           name  = "nginx"
 
           port {
@@ -71,69 +78,46 @@ resource "kubernetes_deployment" "nginx" {
             }
           }
         }
-      }
-    }
-  }
-}
-
-resource "kubernetes_deployment" "php" {
-  metadata {
-    name = "php-fpm"
-    labels = {
-      App = "php-fpm"
-      Env = "${var.env}"
-    }
-  }
-
-  spec {
-    replicas = 4
-    selector {
-      match_labels = {
-        App = "php-fpm"
-      }
-    }
-    template {
-      metadata {
-        labels = {
-          App = "php-fpm"
-        }
-      }
-      spec {
         container {
-          image = "us.gcr.io/${var.project_id}/${var.env}-php-fpm:latest"
-          name  = "php-fpm"
-
+          image = "eu.gcr.io/${var.project_id}/php-fpm:latest"
+          name  = "php"
           port {
             container_port = 9000
           }
-
-          resources {
-            limits = {
-              cpu    = "0.5"
-              memory = "512Mi"
-            }
-            requests = {
-              cpu    = "250m"
-              memory = "50Mi"
-            }
-          }
         }
       }
     }
   }
 }
 
-/* Expose nginx */
+resource "kubernetes_service" "php" {
+  metadata {
+    name = "php"
+    labels = {
+      App = "php"
+    }
+  }
+  spec {
+    selector = {
+      App = kubernetes_deployment.appsbroker.spec.0.template.0.metadata[0].labels.App
+    }
+    port {
+      port = 9000
+      target_port = 9000
+    }
+    type = "ClusterIP"
+  }
+}
+
 resource "kubernetes_service" "nginx" {
   metadata {
     name = "nginx"
   }
   spec {
     selector = {
-      App = kubernetes_deployment.nginx.spec.0.template.0.metadata[0].labels.App
+      App = kubernetes_deployment.appsbroker.spec.0.template.0.metadata[0].labels.App
     }
     port {
-      node_port   = 30201
       port        = 80
       target_port = 80
     }

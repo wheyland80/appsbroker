@@ -1,12 +1,12 @@
 resource "google_service_account" "gitlab_service_account" {
-  account_id   = "gitlab-service-account"
+  account_id   = "${var.env}-gitlab-service-account"
   display_name = "Gitlab Service Account"
 }
 
 resource "google_compute_instance" "gitlab" {
   name         = "${var.env}-gitlab"
-  machine_type = "g1-small"
-  zone = "${var.region}-a"
+  machine_type = "f1-micro"
+  zone = "${var.region}-b"
 
   tags = ["gitlab", "${var.env}-gitlab"]
 
@@ -19,7 +19,7 @@ resource "google_compute_instance" "gitlab" {
   }
 
   network_interface {
-    network = data.terraform_remote_state.network.outputs.network
+    subnetwork = data.terraform_remote_state.network.outputs.subnet
 
     access_config {
       // Ephemeral public IP

@@ -37,3 +37,9 @@ resource "google_project_service" "servicenetworking" {
   service = "servicenetworking.googleapis.com"
   disable_on_destroy = "false"
 }
+
+# Enable the Cloud Build API
+resource "google_project_service" "cloudbuild" {
+  service = "cloudbuild.googleapis.com"
+  disable_on_destroy = "false"
+}
